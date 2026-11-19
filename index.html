@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>PRISM BREAKER 3D — Hyper Chain-Smash Arena</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Noto+Sans+JP:wght@500;700;900&display=swap" rel="stylesheet" />
+  <script type="module" crossorigin src="./assets/index-jrwrFceM.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-BgVxo7JN.css">
+</head>
+<body>
+  <div id="app">
+    <canvas id="game-canvas"></canvas>
+
+    <!-- Dynamic 3D-projected floating combat text layer -->
+    <div id="floating-layer"></div>
+
+    <!-- Fever / Hit screen vignette overlay -->
+    <div id="screen-fx"></div>
+
+    <!-- Mission / Achievement Toast -->
+    <div id="toast-container"></div>
+
+    <!-- In-Game HUD -->
+    <div id="hud" class="hidden">
+      <div class="hud-top">
+        <div class="hud-left">
+          <div class="score-block">
+            <span class="label">SCORE</span>
+            <span id="hud-score" class="value-lg">0</span>
+          </div>
+          <div class="sub-stats">
+            <span class="pill">BEST <b id="hud-best">0</b></span>
+            <span class="pill wave-pill">WAVE <b id="hud-wave">1</b></span>
+            <span class="pill shard-pill">◆ <b id="hud-shards">0</b></span>
+          </div>
+        </div>
+
+        <div class="hud-center">
+          <div id="combo-box" class="combo-box hidden">
+            <div class="combo-num"><span id="hud-combo">0</span><small>CHAIN</small></div>
+            <div class="combo-mult">x<span id="hud-mult">1.0</span></div>
+            <div class="combo-timer-track"><div id="combo-timer-bar"></div></div>
+          </div>
+          <div id="fever-banner" class="fever-banner hidden">⚡ FEVER OVERDRIVE ⚡</div>
+        </div>
+
+        <div class="hud-right">
+          <button id="btn-sound" class="icon-btn" title="サウンド切替">🔊</button>
+          <button id="btn-pause" class="icon-btn" title="一時停止 (ESC)">⏸</button>
+        </div>
+      </div>
+
+      <!-- Boss HP Bar -->
+      <div id="boss-bar-wrap" class="boss-bar-wrap hidden">
+        <div class="boss-label">⚠ PRISM TITAN — MEGA CORE</div>
+        <div class="boss-track"><div id="boss-hp-fill"></div></div>
+      </div>
+
+      <!-- Bottom Gauges -->
+      <div class="hud-bottom">
+        <div class="gauges-row">
+          <div class="gauge-block hp-block">
+            <div class="gauge-header">
+              <span>SHIELD</span>
+              <span id="hud-hp-text">5 / 5</span>
+            </div>
+            <div id="hp-pips" class="hp-pips"></div>
+          </div>
+
+          <div class="gauge-block dash-block">
+            <div class="gauge-header">
+              <span>DASH-SMASH <kbd>SPACE / CLICK</kbd></span>
+              <span id="hud-dash-status">READY!</span>
+            </div>
+            <div class="bar-track"><div id="dash-bar" class="bar-fill dash-fill"></div></div>
+          </div>
+
+          <div class="gauge-block fever-block">
+            <div class="gauge-header">
+              <span>OVERDRIVE <kbd>SHIFT / R-CLICK</kbd></span>
+              <span id="hud-fever-text">0%</span>
+            </div>
+            <div class="bar-track"><div id="fever-bar" class="bar-fill fever-fill"></div></div>
+          </div>
+        </div>
+
+        <!-- XP Bar -->
+        <div class="xp-row">
+          <span class="lv-badge">LV.<b id="hud-level">1</b></span>
+          <div class="xp-track"><div id="xp-bar"></div></div>
+        </div>
+
+        <!-- Active Upgrades Strip -->
+        <div id="active-upgrades" class="active-upgrades"></div>
+      </div>
+
+      <!-- Mobile Virtual Controls -->
+      <div id="mobile-controls" class="mobile-controls">
+        <div id="joystick-zone" class="joystick-zone">
+          <div class="joystick-base"><div id="joystick-knob" class="joystick-knob"></div></div>
+        </div>
+        <div class="mobile-actions">
+          <button id="mobile-dash" class="mobile-btn dash-mbtn">DASH</button>
+          <button id="mobile-nova" class="mobile-btn nova-mbtn">NOVA</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TITLE OVERLAY -->
+    <div id="title-overlay" class="overlay">
+      <div class="title-card">
+        <div class="title-badge">3D HYPER CHAIN-SMASH ARENA</div>
+        <h1 class="game-title">PRISM<br /><span>BREAKER</span> 3D</h1>
+        <p class="tagline">体当たりで砕け。連鎖で燃え上がれ。止まらない「あと1回」。</p>
+
+        <div class="title-stats">
+          <div class="stat-chip">
+            <span class="k">HIGH SCORE</span>
+            <span id="title-best" class="v">0</span>
+          </div>
+          <div class="stat-chip">
+            <span class="k">CORE SHARDS</span>
+            <span id="title-shards" class="v accent">◆ 0</span>
+          </div>
+          <div class="stat-chip">
+            <span class="k">BEST RANK</span>
+            <span id="title-rank" class="v rank">D</span>
+          </div>
+        </div>
+
+        <div class="cta-row">
+          <button id="btn-play" class="btn-primary pulse">
+            <span>▶ PLAY NOW</span>
+            <small>SPACE / ENTER で即スタート</small>
+          </button>
+          <button id="btn-lab-title" class="btn-secondary">
+            <span>⚙ CORE LAB</span>
+            <small>恒久強化・スキン</small>
+          </button>
+        </div>
+
+        <div class="controls-guide">
+          <div><kbd>WASD</kbd> / <kbd>↑↓←→</kbd> 移動（射撃はオート！）</div>
+          <div><kbd>SPACE</kbd> / <kbd>左クリック</kbd> <b>ダッシュ撃破</b>（撃破で即クール解消！）</div>
+          <div><kbd>SHIFT</kbd> / <kbd>右クリック</kbd> <b>ノヴァ解放</b>（敵弾消去＋大爆発）</div>
+          <div><span class="tip-glow">🔥 カスリ（GRAZE）</span> 敵や弾スレスレ回避でスコア＆フィーバー急上昇！</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LEVEL UP UPGRADE MODAL -->
+    <div id="upgrade-overlay" class="overlay hidden">
+      <div class="upgrade-modal">
+        <div class="upgrade-eyebrow">⚡ CORE OVERCLOCK — CHOOSE 1 UPGRADE</div>
+        <h2 class="upgrade-title">強化モジュールを選択</h2>
+        <div id="upgrade-cards" class="upgrade-cards"></div>
+        <div class="upgrade-hint">キーボード <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> でも即選択できます</div>
+      </div>
+    </div>
+
+    <!-- GAME OVER / RESULT OVERLAY -->
+    <div id="gameover-overlay" class="overlay hidden">
+      <div class="result-card">
+        <div class="result-top">
+          <div>
+            <div class="result-eyebrow">RUN COMPLETE</div>
+            <h2 id="result-headline" class="result-headline">SHATTERED!</h2>
+          </div>
+          <div id="result-rank-badge" class="rank-badge">S</div>
+        </div>
+
+        <!-- Near-Miss Teaser (Zeigarnik Hook) -->
+        <div id="nearmiss-box" class="nearmiss-box"></div>
+
+        <div class="result-grid">
+          <div class="res-item">
+            <span>FINAL SCORE</span>
+            <b id="res-score">0</b>
+          </div>
+          <div class="res-item">
+            <span>MAX CHAIN</span>
+            <b id="res-combo">0</b>
+          </div>
+          <div class="res-item">
+            <span>WAVE / TIME</span>
+            <b id="res-wave">W1 / 0:00</b>
+          </div>
+          <div class="res-item highlight">
+            <span>獲得 CORE SHARDS</span>
+            <b id="res-shards">+0 ◆</b>
+          </div>
+        </div>
+
+        <!-- Next Unlock Progress Bar -->
+        <div id="unlock-progress-wrap" class="unlock-progress-wrap">
+          <div class="unlock-header">
+            <span id="unlock-label">次の強化まで</span>
+            <span id="unlock-pct">0%</span>
+          </div>
+          <div class="unlock-track"><div id="unlock-bar"></div></div>
+        </div>
+
+        <div class="result-actions">
+          <button id="btn-retry" class="btn-primary pulse">
+            <span>↻ もう1回！（即リトライ）</span>
+            <small>SPACE / R キーで 0.1秒再出撃</small>
+          </button>
+          <button id="btn-lab-result" class="btn-secondary">
+            <span>⚙ CORE LAB で強化</span>
+            <small id="lab-badge-hint">シャードを使う</small>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CORE LAB (META-PROGRESSION & SKINS & MISSIONS) -->
+    <div id="lab-overlay" class="overlay hidden">
+      <div class="lab-modal">
+        <div class="lab-header">
+          <div>
+            <div class="result-eyebrow">PERMANENT META-UPGRADES</div>
+            <h2>CORE LAB</h2>
+          </div>
+          <div class="lab-shards">所持: <b id="lab-shards-val">◆ 0</b></div>
+        </div>
+
+        <div class="lab-tabs">
+          <button class="lab-tab active" data-tab="upgrades">恒久強化</button>
+          <button class="lab-tab" data-tab="skins">機体スキン</button>
+          <button class="lab-tab" data-tab="missions">ミッション</button>
+        </div>
+
+        <div id="lab-content-upgrades" class="lab-grid"></div>
+        <div id="lab-content-skins" class="lab-grid hidden"></div>
+        <div id="lab-content-missions" class="lab-missions hidden"></div>
+
+        <div class="lab-footer">
+          <button id="btn-lab-close" class="btn-primary">▶ 出撃準備完了（戻る）</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAUSE OVERLAY -->
+    <div id="pause-overlay" class="overlay hidden">
+      <div class="pause-card">
+        <h2>PAUSED</h2>
+        <div class="pause-actions">
+          <button id="btn-resume" class="btn-primary">▶ 再開 (ESC)</button>
+          <button id="btn-pause-retry" class="btn-secondary">↻ 最初からやり直す (R)</button>
+          <button id="btn-pause-title" class="btn-secondary">⌂ タイトルへ</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
